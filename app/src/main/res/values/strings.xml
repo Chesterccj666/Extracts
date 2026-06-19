@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">Extracts</string>
+    <string name="app_name">摘记</string>
+    <string name="widget_description">随机展示摘记内容</string>
 </resources>
