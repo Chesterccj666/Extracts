@@ -3,6 +3,8 @@ package com.lihao.extracts.ui.settings
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -761,6 +763,12 @@ fun SettingsScreen(
         LaunchedEffect(msg) {
             visible = true
         }
+
+        val alpha by animateFloatAsState(
+            targetValue = if (visible) 1f else 0f,
+            animationSpec = tween(durationMillis = 300),
+            label = "toastAlpha"
+        )
         
         Box(
             modifier = Modifier
@@ -771,10 +779,9 @@ fun SettingsScreen(
             Surface(
                 modifier = Modifier
                     .padding(horizontal = 32.dp)
-                    .alpha(if (visible) 1f else 0f),
+                    .alpha(alpha),
                 shape = RoundedCornerShape(20.dp),
                 color = Color(0xE68B5A3E), // 半透明暖棕色
-                shadowElevation = 12.dp
             ) {
                 Text(
                     text = msg,

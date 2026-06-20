@@ -12,6 +12,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,14 +48,6 @@ fun HomeScreen(
 
     var showDeleteDialog by remember { mutableStateOf<Note?>(null) }
     var toastMessage by remember { mutableStateOf<String?>(null) }
-
-    // Toast 自动消失
-    LaunchedEffect(toastMessage) {
-        if (toastMessage != null) {
-            kotlinx.coroutines.delay(700)
-            toastMessage = null
-        }
-    }
 
     Scaffold(
         topBar = {
@@ -205,6 +199,12 @@ fun HomeScreen(
             visible = true
         }
 
+        val alpha by animateFloatAsState(
+            targetValue = if (visible) 1f else 0f,
+            animationSpec = tween(durationMillis = 300),
+            label = "toastAlpha"
+        )
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -214,10 +214,9 @@ fun HomeScreen(
             Surface(
                 modifier = Modifier
                     .padding(horizontal = 32.dp)
-                    .alpha(if (visible) 1f else 0f),
+                    .alpha(alpha),
                 shape = RoundedCornerShape(20.dp),
                 color = Color(0xE68B5A3E), // 半透明暖棕色
-                shadowElevation = 12.dp
             ) {
                 Text(
                     text = msg,
