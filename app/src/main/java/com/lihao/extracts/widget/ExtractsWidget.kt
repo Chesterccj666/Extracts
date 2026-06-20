@@ -137,16 +137,14 @@ private fun WidgetContent(glanceId: GlanceId) {
             }
         }
 
-        // 右上角刷新按钮 - 使用 Row + Spacer 实现右上定位
-        Row(
-            modifier = GlanceModifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            verticalAlignment = Alignment.Top
+        // 左下角刷新按钮
+        Box(
+            modifier = GlanceModifier.fillMaxSize(),
+            contentAlignment = Alignment.BottomStart
         ) {
-            Spacer(modifier = GlanceModifier.defaultWeight())
             Box(
                 modifier = GlanceModifier
+                    .padding(8.dp)
                     .clickable(actionStartActivity<WidgetRefreshActivity>()),
                 contentAlignment = Alignment.Center
             ) {
