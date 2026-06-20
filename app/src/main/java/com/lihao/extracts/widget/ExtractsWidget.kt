@@ -20,11 +20,13 @@ import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import androidx.glance.text.FontFamily
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.lihao.extracts.MainActivity
+import com.lihao.extracts.R
 import com.lihao.extracts.data.database.AppDatabase
 
 class ExtractsWidget : GlanceAppWidget() {
@@ -68,6 +70,7 @@ class ExtractsWidget : GlanceAppWidget() {
 @Composable
 private fun WidgetContent() {
     val state = currentState<WidgetState>()
+    val fzFontFamily = FontFamily("serif")
     
     Column(
         modifier = GlanceModifier
@@ -86,7 +89,8 @@ private fun WidgetContent() {
             },
             style = TextStyle(
                 color = ColorProvider(Color(0xFF2D2926)),
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
+                fontFamily = fzFontFamily
             ),
             maxLines = 4
         )
@@ -95,7 +99,8 @@ private fun WidgetContent() {
             Text(
                 text = "——${state.noteAuthor}",
                 style = TextStyle(
-                    color = ColorProvider(Color(0xFF6B6560))
+                    color = ColorProvider(Color(0xFF6B6560)),
+                    fontFamily = fzFontFamily
                 )
             )
         }
@@ -103,7 +108,8 @@ private fun WidgetContent() {
             Text(
                 text = "《${state.noteSource}》",
                 style = TextStyle(
-                    color = ColorProvider(Color(0xFF6B6560))
+                    color = ColorProvider(Color(0xFF6B6560)),
+                    fontFamily = fzFontFamily
                 )
             )
         }
