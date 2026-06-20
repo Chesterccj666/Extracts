@@ -17,6 +17,18 @@ class EditViewModel(application: Application) : AndroidViewModel(application) {
     val categories: StateFlow<List<Category>> = repository.getAllCategories()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    init {
+        // 新增摘记时，默认选中"未分类"
+        viewModelScope.launch {
+            repository.getAllCategories().first().let { categoryList ->
+                if (_noteId.value == null && _categoryId.value == null && categoryList.isNotEmpty()) {
+                    val defaultCategory = categoryList.find { it.isSystem } ?: categoryList.first()
+                    _categoryId.value = defaultCategory.id
+                }
+            }
+        }
+    }
+
     private val _content = MutableStateFlow("")
     val content: StateFlow<String> = _content.asStateFlow()
 
