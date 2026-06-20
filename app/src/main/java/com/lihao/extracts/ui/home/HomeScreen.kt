@@ -327,15 +327,15 @@ fun NoteCard(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary
                     )
-                }
-                Column(
-                    horizontalAlignment = Alignment.End
-                ) {
                     Text(
                         text = dateFormat.format(Date(note.updateTime)),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
+                Column(
+                    horizontalAlignment = Alignment.End
+                ) {
                     IconButton(
                         onClick = onDelete,
                         modifier = Modifier.size(32.dp)
