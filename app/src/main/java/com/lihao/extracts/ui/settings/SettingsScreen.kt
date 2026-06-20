@@ -3,9 +3,12 @@ package com.lihao.extracts.ui.settings
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -15,9 +18,88 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lihao.extracts.viewmodel.SettingsViewModel
+import kotlin.math.roundToInt
+
+/**
+ * 自定义透明度滑块组件
+ * 样式：一条细线 + 可拖动的小圆点，使用暖色文学主题配色
+ */
+@Composable
+fun OpacitySlider(
+    value: Int,
+    onValueChange: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    range: IntRange = 0..100,
+    thumbRadiusDp: Int = 10,
+    trackHeightDp: Int = 2
+) {
+    val fraction = (value - range.first).toFloat() / (range.last - range.first)
+    val trackColor = Color(0xFFC9BFA8) // 暖灰色轨道
+    val thumbColor = Color(0xFF8B5A3E) // 暖棕色圆点
+    val trackThumbRadiusDp = thumbRadiusDp
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(40.dp)
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val lineHeight = trackHeightDp.dp.toPx()
+            val thumbRadiusPx = trackThumbRadiusDp.dp.toPx()
+            val startY = size.height / 2
+            val startX = thumbRadiusPx
+            val endX = size.width - thumbRadiusPx
+            val thumbX = startX + (endX - startX) * fraction
+
+            // 绘制轨道线
+            drawLine(
+                color = trackColor,
+                start = Offset(startX, startY),
+                end = Offset(endX, startY),
+                strokeWidth = lineHeight,
+                cap = StrokeCap.Round
+            )
+
+            // 绘制圆点
+            drawCircle(
+                color = thumbColor,
+                radius = thumbRadiusPx,
+                center = Offset(thumbX, startY)
+            )
+        }
+
+        // 拖拽交互 - 使用绝对位置计算，确保实时跟随
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectHorizontalDragGestures { change, _ ->
+                        val thumbRadiusPx = trackThumbRadiusDp.dp.toPx()
+                        val startX = thumbRadiusPx
+                        val endX = size.width - thumbRadiusPx
+                        // 使用绝对触摸位置计算，而非增量
+                        val touchX = change.position.x.coerceIn(startX, endX)
+                        val newFraction = (touchX - startX) / (endX - startX)
+                        val newValue = (range.first + (range.last - range.first) * newFraction)
+                            .roundToInt()
+                            .coerceIn(range)
+                        if (newValue != value) {
+                            onValueChange(newValue)
+                        }
+                        change.consume()
+                    }
+                }
+        )
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -164,12 +246,11 @@ fun SettingsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Slider(
-                        value = localOpacity.toFloat(),
-                        onValueChange = { localOpacity = it.toInt() },
-                        valueRange = 0f..100f,
-                        steps = 19,
-                        modifier = Modifier.fillMaxWidth()
+                    OpacitySlider(
+                        value = localOpacity,
+                        onValueChange = { localOpacity = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        range = 0..100
                     )
                     Row(
                         modifier = Modifier.fillMaxWidth(),
