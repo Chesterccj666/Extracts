@@ -87,7 +87,7 @@ private fun WidgetContent() {
         if (state.noteSource.isNotEmpty()) {
             Spacer(modifier = GlanceModifier.height(12.dp))
             Text(
-                text = "《${state.noteSource}》",
+                text = "- ${state.noteSource} -",
                 style = TextStyle(
                     color = ColorProvider(Color(0xFF6B6560)),
                     fontFamily = FontFamily.Serif
