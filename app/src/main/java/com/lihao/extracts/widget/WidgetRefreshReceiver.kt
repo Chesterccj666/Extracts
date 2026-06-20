@@ -1,16 +1,11 @@
 package com.lihao.extracts.widget
 
 import android.app.PendingIntent
-import android.appwidget.AppWidgetManager
 import android.content.BroadcastReceiver
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import androidx.glance.appwidget.GlanceAppWidgetManager
-import com.lihao.extracts.utils.SettingsManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -21,18 +16,7 @@ class WidgetRefreshReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == ACTION_REFRESH) {
             CoroutineScope(Dispatchers.IO).launch {
-                val appWidgetManager = AppWidgetManager.getInstance(context)
-                val widgetIds = appWidgetManager.getAppWidgetIds(
-                    ComponentName(context, ExtractsWidgetReceiver::class.java)
-                )
-
-                val settingsManager = SettingsManager(context)
-                val opacity = settingsManager.widgetOpacity.first()
-
-                for (widgetId in widgetIds) {
-                    val glanceId = GlanceAppWidgetManager(context).getGlanceIdBy(widgetId)
-                    ExtractsWidget.refreshWidget(context, glanceId, opacity)
-                }
+                updateWidget(context)
             }
         }
     }

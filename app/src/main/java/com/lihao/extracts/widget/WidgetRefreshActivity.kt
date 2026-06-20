@@ -1,15 +1,9 @@
 package com.lihao.extracts.widget
 
 import android.app.Activity
-import android.appwidget.AppWidgetManager
-import android.content.ComponentName
 import android.os.Bundle
-import androidx.glance.appwidget.GlanceAppWidgetManager
-import com.lihao.extracts.data.database.AppDatabase
-import com.lihao.extracts.utils.SettingsManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -26,19 +20,7 @@ class WidgetRefreshActivity : Activity() {
 
         // 在后台执行刷新逻辑
         CoroutineScope(Dispatchers.IO).launch {
-            val appWidgetManager = AppWidgetManager.getInstance(this@WidgetRefreshActivity)
-            val widgetIds = appWidgetManager.getAppWidgetIds(
-                ComponentName(this@WidgetRefreshActivity, ExtractsWidgetReceiver::class.java)
-            )
-
-            val settingsManager = SettingsManager(this@WidgetRefreshActivity)
-            val opacity = settingsManager.widgetOpacity.first()
-
-            for (widgetId in widgetIds) {
-                val glanceId = GlanceAppWidgetManager(this@WidgetRefreshActivity)
-                    .getGlanceIdBy(widgetId)
-                ExtractsWidget.refreshWidget(this@WidgetRefreshActivity, glanceId, opacity)
-            }
+            updateWidget(this@WidgetRefreshActivity)
         }
     }
 }

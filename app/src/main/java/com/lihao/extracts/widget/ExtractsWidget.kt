@@ -1,161 +1,158 @@
 package com.lihao.extracts.widget
 
-import android.annotation.SuppressLint
+import android.app.PendingIntent
 import android.content.Context
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.glance.GlanceId
-import androidx.glance.GlanceModifier
-import androidx.glance.action.clickable
-import androidx.glance.action.actionStartActivity
-import androidx.glance.appwidget.GlanceAppWidget
-import androidx.glance.appwidget.provideContent
-import androidx.glance.appwidget.state.updateAppWidgetState
-import androidx.glance.background
-import androidx.glance.currentState
-import androidx.glance.layout.Alignment
-import androidx.glance.layout.Box
-import androidx.glance.layout.Column
-import androidx.glance.layout.Row
-import androidx.glance.layout.Spacer
-import androidx.glance.layout.fillMaxSize
-import androidx.glance.layout.fillMaxWidth
-import androidx.glance.layout.height
-import androidx.glance.layout.padding
-import androidx.glance.text.FontFamily
-import androidx.compose.ui.unit.sp
-import androidx.glance.text.FontWeight
-import androidx.glance.text.Text
-import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
+import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Typeface
+import android.text.Layout
+import android.text.StaticLayout
+import android.text.TextPaint
+import android.view.View
+import android.widget.RemoteViews
+import androidx.core.content.res.ResourcesCompat
 import com.lihao.extracts.MainActivity
-import com.lihao.extracts.data.database.AppDatabase
-import com.lihao.extracts.utils.SettingsManager
-import kotlinx.coroutines.flow.first
+import com.lihao.extracts.R
 
 /**
- * 解析 ARGB hex 字符串为 Color，例如 "FF2D2926"
+ * 解析 ARGB hex 字符串为 int 颜色值，例如 "FF2D2926"
  */
-fun parseHexColor(hex: String): Color {
+fun parseHexColorInt(hex: String): Int {
     return try {
-        Color(java.lang.Long.parseLong(hex, 16))
+        java.lang.Long.parseLong(hex, 16).toInt()
     } catch (e: Exception) {
-        Color(0xFF2D2926) // 默认深色
+        0xFF2D2926.toInt() // 默认深色
     }
 }
 
-class ExtractsWidget : GlanceAppWidget() {
-
-    override val stateDefinition = WidgetStateDefinition
-
-    override suspend fun provideGlance(context: Context, id: GlanceId) {
-        provideContent {
-            WidgetContent(id)
-        }
+/**
+ * 将文字渲染为 Bitmap，使用自定义字体
+ */
+fun renderTextBitmap(
+    text: String,
+    textSize: Float,
+    textColor: Int,
+    typeface: Typeface,
+    maxWidth: Int,
+    maxLines: Int = Int.MAX_VALUE
+): Bitmap {
+    val paint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+        this.textSize = textSize
+        this.color = textColor
+        this.typeface = typeface
     }
 
-    companion object {
-        suspend fun refreshWidget(context: Context, id: GlanceId, opacity: Int = 100) {
-            val db = AppDatabase.getInstance(context)
-            val randomNote = db.noteDao().getRandomNote()
-            val settingsManager = SettingsManager(context)
-            val contentColor = settingsManager.widgetContentColor.first()
-            val sourceColor = settingsManager.widgetSourceColor.first()
+    val spacingMult = 1.0f
+    val spacingAdd = 0f
 
-            updateAppWidgetState(
-                context = context,
-                definition = WidgetStateDefinition,
-                glanceId = id
-            ) {
-                WidgetState(
-                    noteContent = randomNote?.content ?: "暂无摘记",
-                    noteSource = randomNote?.source ?: "",
-                    opacity = opacity,
-                    contentColor = contentColor,
-                    sourceColor = sourceColor
-                )
-            }
+    var layout = StaticLayout.Builder
+        .obtain(text, 0, text.length, paint, maxWidth)
+        .setAlignment(Layout.Alignment.ALIGN_CENTER)
+        .setLineSpacing(spacingAdd, spacingMult)
+        .setIncludePad(false)
+        .build()
 
-            ExtractsWidget().update(context, id)
-        }
+    // 限制行数
+    if (layout.lineCount > maxLines) {
+        val end = layout.getLineEnd(maxLines - 1)
+        val ellipsized = text.substring(0, end.coerceAtMost(text.length)).trimEnd() + "..."
+        layout = StaticLayout.Builder
+            .obtain(ellipsized, 0, ellipsized.length, paint, maxWidth)
+            .setAlignment(Layout.Alignment.ALIGN_CENTER)
+            .setLineSpacing(spacingAdd, spacingMult)
+            .setIncludePad(false)
+            .build()
     }
+
+    val width = layout.width
+    val height = layout.height
+
+    val bitmap = Bitmap.createBitmap(width.coerceAtLeast(1), height.coerceAtLeast(1), Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+    layout.draw(canvas)
+    return bitmap
 }
 
-@SuppressLint("RestrictedApi")
-@Composable
-private fun WidgetContent(glanceId: GlanceId) {
-    val state = currentState<WidgetState>()
-    
-    // 计算带透明度的背景色
-    val alpha = (state.opacity / 100f).coerceIn(0f, 1f)
-    val baseColor = Color(0xFFF8F4EE)
-    val transparentColor = Color(
-        red = baseColor.red,
-        green = baseColor.green,
-        blue = baseColor.blue,
-        alpha = alpha
+/**
+ * 构建小组件的 RemoteViews
+ */
+fun buildWidgetRemoteViews(
+    context: Context,
+    noteContent: String,
+    noteSource: String,
+    opacity: Int,
+    contentColor: String,
+    sourceColor: String
+): RemoteViews {
+    val views = RemoteViews(context.packageName, R.layout.widget_layout)
+
+    // 设置背景透明度
+    val alpha = (opacity / 100f).coerceIn(0f, 1f)
+    val baseColor = 0xFFF8F4EE.toInt()
+    val r = Color.red(baseColor)
+    val g = Color.green(baseColor)
+    val b = Color.blue(baseColor)
+    val backgroundColor = Color.argb(alpha, r / 255f, g / 255f, b / 255f)
+    views.setInt(R.id.widget_root, "setBackgroundColor", backgroundColor)
+
+    // 加载自定义字体
+    val customTypeface = ResourcesCompat.getFont(context, R.font.fzqkbyy) ?: Typeface.SERIF
+
+    // 计算可用宽度（小组件宽度减去 padding）
+    // 4格宽度约 250dp，减去左右 padding 32dp = 218dp
+    val density = context.resources.displayMetrics.density
+    val maxWidthPx = (218 * density).toInt()
+
+    // 渲染摘记内容为 Bitmap
+    val displayContent = if (noteContent.length > 100) {
+        noteContent.substring(0, 100) + "..."
+    } else {
+        noteContent
+    }
+    val contentBitmap = renderTextBitmap(
+        text = displayContent,
+        textSize = 18f * density,
+        textColor = parseHexColorInt(contentColor),
+        typeface = customTypeface,
+        maxWidth = maxWidthPx,
+        maxLines = 4
     )
-    
-    Box(
-        modifier = GlanceModifier
-            .fillMaxSize()
-            .background(ColorProvider(transparentColor))
-    ) {
-        // 内容区域（居中）
-        Column(
-            modifier = GlanceModifier
-                .fillMaxSize()
-                .padding(16.dp)
-                .clickable(actionStartActivity<MainActivity>()),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = if (state.noteContent.length > 100) {
-                    state.noteContent.substring(0, 100) + "..."
-                } else {
-                    state.noteContent
-                },
-                style = TextStyle(
-                    color = ColorProvider(parseHexColor(state.contentColor)),
-                    fontWeight = FontWeight.Medium,
-                    fontFamily = FontFamily.Serif,
-                    fontSize = 18.sp
-                ),
-                maxLines = 4
-            )
-            if (state.noteSource.isNotEmpty()) {
-                Spacer(modifier = GlanceModifier.height(12.dp))
-                Text(
-                    text = "- ${state.noteSource} -",
-                    style = TextStyle(
-                        color = ColorProvider(parseHexColor(state.sourceColor)),
-                        fontFamily = FontFamily.Serif
-                    )
-                )
-            }
-        }
+    views.setImageViewBitmap(R.id.note_content_image, contentBitmap)
 
-        // 左下角刷新按钮
-        Box(
-            modifier = GlanceModifier.fillMaxSize(),
-            contentAlignment = Alignment.BottomStart
-        ) {
-            Box(
-                modifier = GlanceModifier
-                    .padding(8.dp)
-                    .clickable(actionStartActivity<WidgetRefreshActivity>()),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "↻",
-                    style = TextStyle(
-                        color = ColorProvider(Color(0xFF8B5A3E)),
-                        fontSize = 32.sp
-                    )
-                )
-            }
-        }
+    // 渲染来源为 Bitmap
+    if (noteSource.isNotEmpty()) {
+        val sourceBitmap = renderTextBitmap(
+            text = "- $noteSource -",
+            textSize = 14f * density,
+            textColor = parseHexColorInt(sourceColor),
+            typeface = customTypeface,
+            maxWidth = maxWidthPx,
+            maxLines = 1
+        )
+        views.setImageViewBitmap(R.id.note_source_image, sourceBitmap)
+        views.setViewVisibility(R.id.note_source_image, View.VISIBLE)
+    } else {
+        views.setViewVisibility(R.id.note_source_image, View.GONE)
     }
+
+    // 点击内容区域打开主界面
+    val mainIntent = Intent(context, MainActivity::class.java)
+    val mainPendingIntent = PendingIntent.getActivity(
+        context,
+        0,
+        mainIntent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+    views.setOnClickPendingIntent(R.id.content_area, mainPendingIntent)
+
+    // 点击刷新按钮发送广播
+    views.setOnClickPendingIntent(
+        R.id.refresh_button,
+        WidgetRefreshReceiver.getRefreshPendingIntent(context)
+    )
+
+    return views
 }
