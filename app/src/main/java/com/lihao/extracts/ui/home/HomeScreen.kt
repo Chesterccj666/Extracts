@@ -2,9 +2,11 @@ package com.lihao.extracts.ui.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -243,9 +245,12 @@ fun CategoryFilterBar(
     selectedCategory: Long?,
     onCategorySelected: (Long?) -> Unit
 ) {
+    val scrollState = rememberScrollState()
+    
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .horizontalScroll(scrollState)
             .padding(horizontal = 16.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
