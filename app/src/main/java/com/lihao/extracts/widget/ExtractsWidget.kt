@@ -1,5 +1,6 @@
 package com.lihao.extracts.widget
 
+import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -20,6 +21,7 @@ import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.text.FontFamily
+import androidx.compose.ui.unit.sp
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
@@ -58,6 +60,7 @@ class ExtractsWidget : GlanceAppWidget() {
     }
 }
 
+@SuppressLint("RestrictedApi")
 @Composable
 private fun WidgetContent() {
     val state = currentState<WidgetState>()
@@ -80,7 +83,8 @@ private fun WidgetContent() {
             style = TextStyle(
                 color = ColorProvider(Color(0xFF2D2926)),
                 fontWeight = FontWeight.Medium,
-                fontFamily = FontFamily.Serif
+                fontFamily = FontFamily.Serif,
+                fontSize = 18.sp
             ),
             maxLines = 4
         )
@@ -90,7 +94,7 @@ private fun WidgetContent() {
                 text = "- ${state.noteSource} -",
                 style = TextStyle(
                     color = ColorProvider(Color(0xFF6B6560)),
-                    fontFamily = FontFamily.Serif
+                    fontFamily = FontFamily.Serif,
                 )
             )
         }
