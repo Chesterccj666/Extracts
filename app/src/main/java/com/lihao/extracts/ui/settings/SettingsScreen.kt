@@ -5,8 +5,13 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -112,17 +117,29 @@ fun SettingsScreen(
 ) {
     val refreshHour by viewModel.widgetRefreshHour.collectAsState()
     val widgetOpacity by viewModel.widgetOpacity.collectAsState()
+    val widgetContentColor by viewModel.widgetContentColor.collectAsState()
+    val widgetSourceColor by viewModel.widgetSourceColor.collectAsState()
     val message by viewModel.message.collectAsState()
 
     var showHourPicker by remember { mutableStateOf(false) }
     var showImportConfirm by remember { mutableStateOf(false) }
     var pendingImportUri by remember { mutableStateOf<Uri?>(null) }
     var localOpacity by remember { mutableIntStateOf(widgetOpacity) }
+    var localContentColor by remember { mutableStateOf(widgetContentColor) }
+    var localSourceColor by remember { mutableStateOf(widgetSourceColor) }
+    var showContentColorPicker by remember { mutableStateOf(false) }
+    var showSourceColorPicker by remember { mutableStateOf(false) }
     var toastMessage by remember { mutableStateOf<String?>(null) }
 
-    // 同步本地透明度值
+    // 同步本地值
     LaunchedEffect(widgetOpacity) {
         localOpacity = widgetOpacity
+    }
+    LaunchedEffect(widgetContentColor) {
+        localContentColor = widgetContentColor
+    }
+    LaunchedEffect(widgetSourceColor) {
+        localSourceColor = widgetSourceColor
     }
 
     // Toast 自动消失
@@ -286,6 +303,118 @@ fun SettingsScreen(
                 }
             }
 
+            // Widget content color setting
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.TextFields,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                "摘记内容字体颜色",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            "当前颜色: #${localContentColor.takeLast(6)}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .background(
+                                    Color(android.graphics.Color.parseColor("#${localContentColor.takeLast(6)}")),
+                                    CircleShape
+                                )
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        TextButton(onClick = { showContentColorPicker = true }) {
+                            Text("修改", color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                }
+            }
+
+            // Widget source color setting
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.FormatQuote,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                "来源字体颜色",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            "当前颜色: #${localSourceColor.takeLast(6)}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .background(
+                                    Color(android.graphics.Color.parseColor("#${localSourceColor.takeLast(6)}")),
+                                    CircleShape
+                                )
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        TextButton(onClick = { showSourceColorPicker = true }) {
+                            Text("修改", color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                }
+            }
+
             // Export backup
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -421,6 +550,170 @@ fun SettingsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showHourPicker = false }) {
+                    Text("取消")
+                }
+            }
+        )
+    }
+
+    // Content color picker dialog
+    if (showContentColorPicker) {
+        var selectedColor by remember { mutableStateOf(localContentColor) }
+        val presetColors = listOf(
+            "FF2D2926" to "深棕",
+            "FF6B6560" to "暖灰",
+            "FF8B5A3E" to "棕色",
+            "FF2C5F2D" to "深绿",
+            "FF1A3A52" to "深蓝",
+            "FF8B0000" to "深红",
+            "FF000000" to "纯黑",
+            "FFFFFFFF" to "纯白"
+        )
+
+        AlertDialog(
+            onDismissRequest = { showContentColorPicker = false },
+            title = {
+                Text(
+                    "选择摘记内容字体颜色",
+                    style = MaterialTheme.typography.titleLarge
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        "当前颜色: #${selectedColor.takeLast(6)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(4),
+                        modifier = Modifier.height(200.dp)
+                    ) {
+                        items(presetColors.size) { index ->
+                            val (color, name) = presetColors[index]
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.padding(8.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .background(
+                                            Color(android.graphics.Color.parseColor("#$color")),
+                                            CircleShape
+                                        )
+                                        .clickable {
+                                            selectedColor = color
+                                        }
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    name,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontSize = 10.sp
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.setWidgetContentColor(selectedColor)
+                    localContentColor = selectedColor
+                    showContentColorPicker = false
+                    toastMessage = "修改成功！"
+                }) {
+                    Text("确定", color = MaterialTheme.colorScheme.primary)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showContentColorPicker = false }) {
+                    Text("取消")
+                }
+            }
+        )
+    }
+
+    // Source color picker dialog
+    if (showSourceColorPicker) {
+        var selectedColor by remember { mutableStateOf(localSourceColor) }
+        val presetColors = listOf(
+            "FF8B8680" to "浅灰",
+            "FFA0A0A0" to "灰色",
+            "FF8B5A3E" to "棕色",
+            "FF6B8E6B" to "灰绿",
+            "FF5A7A8B" to "灰蓝",
+            "FF8B6B6B" to "灰红",
+            "FF666666" to "中灰",
+            "FFFFFFFF" to "纯白"
+        )
+
+        AlertDialog(
+            onDismissRequest = { showSourceColorPicker = false },
+            title = {
+                Text(
+                    "选择来源字体颜色",
+                    style = MaterialTheme.typography.titleLarge
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        "当前颜色: #${selectedColor.takeLast(6)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(4),
+                        modifier = Modifier.height(200.dp)
+                    ) {
+                        items(presetColors.size) { index ->
+                            val (color, name) = presetColors[index]
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.padding(8.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .background(
+                                            Color(android.graphics.Color.parseColor("#$color")),
+                                            CircleShape
+                                        )
+                                        .clickable {
+                                            selectedColor = color
+                                        }
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    name,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontSize = 10.sp
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.setWidgetSourceColor(selectedColor)
+                    localSourceColor = selectedColor
+                    showSourceColorPicker = false
+                    toastMessage = "修改成功！"
+                }) {
+                    Text("确定", color = MaterialTheme.colorScheme.primary)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showSourceColorPicker = false }) {
                     Text("取消")
                 }
             }

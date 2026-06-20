@@ -26,6 +26,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     val widgetOpacity: StateFlow<Int> = settingsManager.widgetOpacity
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 100)
 
+    val widgetContentColor: StateFlow<String> = settingsManager.widgetContentColor
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "FF2D2926")
+
+    val widgetSourceColor: StateFlow<String> = settingsManager.widgetSourceColor
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "FF6B6560")
+
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message.asStateFlow()
 
@@ -38,6 +44,18 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setWidgetOpacity(opacity: Int) {
         viewModelScope.launch {
             settingsManager.setWidgetOpacity(opacity)
+        }
+    }
+
+    fun setWidgetContentColor(color: String) {
+        viewModelScope.launch {
+            settingsManager.setWidgetContentColor(color)
+        }
+    }
+
+    fun setWidgetSourceColor(color: String) {
+        viewModelScope.launch {
+            settingsManager.setWidgetSourceColor(color)
         }
     }
 

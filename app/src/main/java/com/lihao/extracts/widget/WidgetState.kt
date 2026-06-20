@@ -15,7 +15,9 @@ import kotlinx.serialization.json.Json
 data class WidgetState(
     val noteContent: String = "暂无摘记",
     val noteSource: String = "",
-    val opacity: Int = 100 // 透明度百分比 0-100
+    val opacity: Int = 100, // 透明度百分比 0-100
+    val contentColor: String = "FF2D2926", // 内容字体颜色 (ARGB hex)
+    val sourceColor: String = "FF6B6560" // 来源字体颜色 (ARGB hex)
 )
 
 object WidgetStateSerializer : Serializer<WidgetState> {
