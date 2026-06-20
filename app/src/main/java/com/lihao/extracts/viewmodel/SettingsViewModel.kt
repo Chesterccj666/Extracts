@@ -98,7 +98,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                         Note(
                             content = note.content,
                             source = note.source,
-                            author = note.author,
                             categoryId = newCategoryId,
                             updateTime = note.updateTime
                         )

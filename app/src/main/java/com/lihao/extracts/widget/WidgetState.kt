@@ -14,7 +14,6 @@ import kotlinx.serialization.json.Json
 @Serializable
 data class WidgetState(
     val noteContent: String = "暂无摘记",
-    val noteAuthor: String = "",
     val noteSource: String = ""
 )
 

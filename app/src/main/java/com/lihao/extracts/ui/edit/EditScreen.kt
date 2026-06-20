@@ -23,7 +23,6 @@ fun EditScreen(
 ) {
     val content by viewModel.content.collectAsState()
     val source by viewModel.source.collectAsState()
-    val author by viewModel.author.collectAsState()
     val categoryId by viewModel.categoryId.collectAsState()
     val categories by viewModel.categories.collectAsState()
     val saved by viewModel.saved.collectAsState()
@@ -53,12 +52,12 @@ fun EditScreen(
                 actions = {
                     TextButton(
                         onClick = { viewModel.save() },
-                        enabled = content.isNotBlank() && source.isNotBlank() && categoryId != null
+                        enabled = content.isNotBlank() && categoryId != null
                     ) {
                         Text(
                             "保存",
                             style = MaterialTheme.typography.labelLarge,
-                            color = if (content.isNotBlank() && source.isNotBlank() && categoryId != null)
+                            color = if (content.isNotBlank() && categoryId != null)
                                 MaterialTheme.colorScheme.primary
                             else
                                 MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
@@ -121,7 +120,7 @@ fun EditScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        "来源 *",
+                        "来源",
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -131,37 +130,7 @@ fun EditScreen(
                         onValueChange = { viewModel.setSource(it) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        placeholder = { Text("请输入来源...") },
-                        shape = RoundedCornerShape(8.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                        )
-                    )
-                }
-            }
-
-            // Author field
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        "作者",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = author,
-                        onValueChange = { viewModel.setAuthor(it) },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        placeholder = { Text("请输入作者（可选）...") },
+                        placeholder = { Text("请输入来源（可选）...") },
                         shape = RoundedCornerShape(8.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = MaterialTheme.colorScheme.primary,

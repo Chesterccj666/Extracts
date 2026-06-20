@@ -88,7 +88,7 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
-                placeholder = { Text("搜索内容、来源、作者...") },
+                placeholder = { Text("搜索内容、来源...") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 trailingIcon = {
                     if (searchQuery.isNotEmpty()) {
@@ -251,14 +251,9 @@ fun NoteCard(
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(
-                        text = "来源: ${note.source}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    if (note.author.isNotEmpty()) {
+                    if (note.source.isNotEmpty()) {
                         Text(
-                            text = "作者: ${note.author}",
+                            text = "来源: ${note.source}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

@@ -16,7 +16,6 @@ interface NoteDao {
         SELECT * FROM notes 
         WHERE content LIKE '%' || :query || '%' 
         OR source LIKE '%' || :query || '%' 
-        OR author LIKE '%' || :query || '%' 
         ORDER BY updateTime DESC
     """)
     fun searchNotes(query: String): Flow<List<Note>>
@@ -25,8 +24,7 @@ interface NoteDao {
         SELECT * FROM notes 
         WHERE categoryId = :categoryId 
         AND (content LIKE '%' || :query || '%' 
-        OR source LIKE '%' || :query || '%' 
-        OR author LIKE '%' || :query || '%')
+        OR source LIKE '%' || :query || '%')
         ORDER BY updateTime DESC
     """)
     fun searchNotesByCategory(query: String, categoryId: Long): Flow<List<Note>>

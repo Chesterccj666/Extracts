@@ -1,6 +1,5 @@
 package com.lihao.extracts.widget
 
-import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -26,7 +25,6 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.lihao.extracts.MainActivity
-import com.lihao.extracts.R
 import com.lihao.extracts.data.database.AppDatabase
 
 class ExtractsWidget : GlanceAppWidget() {
@@ -34,9 +32,6 @@ class ExtractsWidget : GlanceAppWidget() {
     override val stateDefinition = WidgetStateDefinition
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        // provideGlance 只负责提供初始内容
-        // 状态更新由 refreshWidget 负责，不会在 provideGlance 中重复设置
-        
         provideContent {
             WidgetContent()
         }
@@ -47,7 +42,6 @@ class ExtractsWidget : GlanceAppWidget() {
             val db = AppDatabase.getInstance(context)
             val randomNote = db.noteDao().getRandomNote()
             
-            // 更新状态
             updateAppWidgetState(
                 context = context,
                 definition = WidgetStateDefinition,
@@ -55,22 +49,18 @@ class ExtractsWidget : GlanceAppWidget() {
             ) {
                 WidgetState(
                     noteContent = randomNote?.content ?: "暂无摘记",
-                    noteAuthor = randomNote?.author ?: "",
                     noteSource = randomNote?.source ?: ""
                 )
             }
             
-            // 触发 widget 重新渲染
             ExtractsWidget().update(context, id)
         }
     }
 }
 
-@SuppressLint("RestrictedApi")
 @Composable
 private fun WidgetContent() {
     val state = currentState<WidgetState>()
-    val fzFontFamily = FontFamily("serif")
     
     Column(
         modifier = GlanceModifier
@@ -90,26 +80,17 @@ private fun WidgetContent() {
             style = TextStyle(
                 color = ColorProvider(Color(0xFF2D2926)),
                 fontWeight = FontWeight.Medium,
-                fontFamily = fzFontFamily
+                fontFamily = FontFamily.Serif
             ),
             maxLines = 4
         )
-        if (state.noteAuthor.isNotEmpty()) {
-            Spacer(modifier = GlanceModifier.height(8.dp))
-            Text(
-                text = "——${state.noteAuthor}",
-                style = TextStyle(
-                    color = ColorProvider(Color(0xFF6B6560)),
-                    fontFamily = fzFontFamily
-                )
-            )
-        }
         if (state.noteSource.isNotEmpty()) {
+            Spacer(modifier = GlanceModifier.height(12.dp))
             Text(
                 text = "《${state.noteSource}》",
                 style = TextStyle(
                     color = ColorProvider(Color(0xFF6B6560)),
-                    fontFamily = fzFontFamily
+                    fontFamily = FontFamily.Serif
                 )
             )
         }

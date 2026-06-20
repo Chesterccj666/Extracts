@@ -21,8 +21,7 @@ data class Note(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val content: String,
-    val source: String,
-    val author: String = "",
+    val source: String = "",
     val categoryId: Long,
     val updateTime: Long = System.currentTimeMillis()
 )

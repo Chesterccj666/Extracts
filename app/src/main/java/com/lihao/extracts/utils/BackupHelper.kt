@@ -1,6 +1,5 @@
 package com.lihao.extracts.utils
 
-import android.content.Context
 import com.lihao.extracts.data.entity.Category
 import com.lihao.extracts.data.entity.Note
 import kotlinx.serialization.Serializable
@@ -19,7 +18,6 @@ data class NoteJson(
     val id: Long = 0,
     val content: String,
     val source: String,
-    val author: String = "",
     val categoryId: Long,
     val updateTime: Long
 )
@@ -40,7 +38,7 @@ object BackupHelper {
         val backup = BackupData(
             categories = categories.map { CategoryJson(it.id, it.name, it.isSystem) },
             notes = notes.map {
-                NoteJson(it.id, it.content, it.source, it.author, it.categoryId, it.updateTime)
+                NoteJson(it.id, it.content, it.source, it.categoryId, it.updateTime)
             }
         )
         return json.encodeToString(backup)
