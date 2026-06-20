@@ -2,4 +2,12 @@
 <resources>
 
     <style name="Theme.Extracts" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.Extracts.Transparent" parent="Theme.Extracts">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+    </style>
 </resources>

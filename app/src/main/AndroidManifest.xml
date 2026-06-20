@@ -35,6 +35,22 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/extracts_widget_info" />
         </receiver>
+
+        <receiver
+            android:name=".widget.WidgetRefreshReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.lihao.extracts.widget.ACTION_REFRESH" />
+            </intent-filter>
+        </receiver>
+
+        <activity
+            android:name=".widget.WidgetRefreshActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Extracts.Transparent"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity="" />
     </application>
 
 </manifest>

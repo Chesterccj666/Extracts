@@ -15,9 +15,12 @@ import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.background
 import androidx.glance.currentState
 import androidx.glance.layout.Alignment
+import androidx.glance.layout.Box
 import androidx.glance.layout.Column
+import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.text.FontFamily
@@ -35,7 +38,7 @@ class ExtractsWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
-            WidgetContent()
+            WidgetContent(id)
         }
     }
 
@@ -63,7 +66,7 @@ class ExtractsWidget : GlanceAppWidget() {
 
 @SuppressLint("RestrictedApi")
 @Composable
-private fun WidgetContent() {
+private fun WidgetContent(glanceId: GlanceId) {
     val state = currentState<WidgetState>()
     
     // 计算带透明度的背景色
@@ -76,38 +79,67 @@ private fun WidgetContent() {
         alpha = alpha
     )
     
-    Column(
+    Box(
         modifier = GlanceModifier
             .fillMaxSize()
-            .padding(16.dp)
             .background(ColorProvider(transparentColor))
-            .clickable(actionStartActivity<MainActivity>()),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = if (state.noteContent.length > 100) {
-                state.noteContent.substring(0, 100) + "..."
-            } else {
-                state.noteContent
-            },
-            style = TextStyle(
-                color = ColorProvider(Color(0xFF2D2926)),
-                fontWeight = FontWeight.Medium,
-                fontFamily = FontFamily.Serif,
-                fontSize = 18.sp
-            ),
-            maxLines = 4
-        )
-        if (state.noteSource.isNotEmpty()) {
-            Spacer(modifier = GlanceModifier.height(12.dp))
+        // 内容区域（居中）
+        Column(
+            modifier = GlanceModifier
+                .fillMaxSize()
+                .padding(16.dp)
+                .clickable(actionStartActivity<MainActivity>()),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text(
-                text = "- ${state.noteSource} -",
+                text = if (state.noteContent.length > 100) {
+                    state.noteContent.substring(0, 100) + "..."
+                } else {
+                    state.noteContent
+                },
                 style = TextStyle(
-                    color = ColorProvider(Color(0xFF6B6560)),
-                    fontFamily = FontFamily.Serif
-                )
+                    color = ColorProvider(Color(0xFF2D2926)),
+                    fontWeight = FontWeight.Medium,
+                    fontFamily = FontFamily.Serif,
+                    fontSize = 18.sp
+                ),
+                maxLines = 4
             )
+            if (state.noteSource.isNotEmpty()) {
+                Spacer(modifier = GlanceModifier.height(12.dp))
+                Text(
+                    text = "- ${state.noteSource} -",
+                    style = TextStyle(
+                        color = ColorProvider(Color(0xFF6B6560)),
+                        fontFamily = FontFamily.Serif
+                    )
+                )
+            }
+        }
+
+        // 右上角刷新按钮 - 使用 Row + Spacer 实现右上定位
+        Row(
+            modifier = GlanceModifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Spacer(modifier = GlanceModifier.defaultWeight())
+            Box(
+                modifier = GlanceModifier
+                    .clickable(actionStartActivity<WidgetRefreshActivity>()),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "↻",
+                    style = TextStyle(
+                        color = ColorProvider(Color(0xFF8B5A3E)),
+                        fontSize = 32.sp
+                    )
+                )
+            }
         }
     }
 }
