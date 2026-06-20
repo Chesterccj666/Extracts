@@ -17,13 +17,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lihao.extracts.viewmodel.SettingsViewModel
 import kotlin.math.roundToInt
@@ -115,10 +118,27 @@ fun SettingsScreen(
     var showImportConfirm by remember { mutableStateOf(false) }
     var pendingImportUri by remember { mutableStateOf<Uri?>(null) }
     var localOpacity by remember { mutableIntStateOf(widgetOpacity) }
+    var toastMessage by remember { mutableStateOf<String?>(null) }
 
     // 同步本地透明度值
     LaunchedEffect(widgetOpacity) {
         localOpacity = widgetOpacity
+    }
+
+    // Toast 自动消失
+    LaunchedEffect(toastMessage) {
+        if (toastMessage != null) {
+            kotlinx.coroutines.delay(1000)
+            toastMessage = null
+        }
+    }
+
+    // 观察 ViewModel 消息，设置 Toast
+    LaunchedEffect(message) {
+        when {
+            message == "导出成功" -> toastMessage = "导出成功！"
+            message == "导入成功" -> toastMessage = "导入成功！"
+        }
     }
 
     val exportLauncher = rememberLauncherForActivityResult(
@@ -258,6 +278,7 @@ fun SettingsScreen(
                     ) {
                         TextButton(onClick = {
                             viewModel.setWidgetOpacity(localOpacity)
+                            toastMessage = "应用成功！"
                         }) {
                             Text("应用", color = MaterialTheme.colorScheme.primary)
                         }
@@ -287,7 +308,7 @@ fun SettingsScreen(
                             Icon(
                                 Icons.Default.Upload,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.secondary,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(24.dp)
                             )
                             Spacer(modifier = Modifier.width(12.dp))
@@ -305,7 +326,7 @@ fun SettingsScreen(
                         )
                     }
                     TextButton(onClick = { exportLauncher.launch("extracts_backup.json") }) {
-                        Text("导出", color = MaterialTheme.colorScheme.secondary)
+                        Text("导出", color = MaterialTheme.colorScheme.primary)
                     }
                 }
             }
@@ -332,7 +353,7 @@ fun SettingsScreen(
                             Icon(
                                 Icons.Default.Download,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.tertiary,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(24.dp)
                             )
                             Spacer(modifier = Modifier.width(12.dp))
@@ -350,7 +371,7 @@ fun SettingsScreen(
                         )
                     }
                     TextButton(onClick = { importLauncher.launch(arrayOf("application/json")) }) {
-                        Text("导入", color = MaterialTheme.colorScheme.tertiary)
+                        Text("导入", color = MaterialTheme.colorScheme.primary)
                     }
                 }
             }
@@ -393,6 +414,7 @@ fun SettingsScreen(
                 TextButton(onClick = {
                     viewModel.setWidgetRefreshHour(selectedHour)
                     showHourPicker = false
+                    toastMessage = "修改成功！"
                 }) {
                     Text("确定", color = MaterialTheme.colorScheme.primary)
                 }
@@ -439,21 +461,46 @@ fun SettingsScreen(
         )
     }
 
-    // Message snackbar
-    message?.let {
-        Snackbar(
-            modifier = Modifier.padding(16.dp),
-            action = {
-                TextButton(onClick = { viewModel.clearMessage() }) {
-                    Text("关闭")
-                }
-            }
-        ) {
-            Text(it)
+    // Toast 提示（屏幕底部居中，带淡入淡出动画）
+    toastMessage?.let { msg ->
+        var visible by remember { mutableStateOf(false) }
+        
+        LaunchedEffect(msg) {
+            visible = true
         }
-        LaunchedEffect(it) {
-            kotlinx.coroutines.delay(3000)
-            viewModel.clearMessage()
+        
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 80.dp),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Surface(
+                modifier = Modifier
+                    .padding(horizontal = 32.dp)
+                    .alpha(if (visible) 1f else 0f),
+                shape = RoundedCornerShape(20.dp),
+                color = Color(0xE68B5A3E), // 半透明暖棕色
+                shadowElevation = 12.dp
+            ) {
+                Text(
+                    text = msg,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 14.dp),
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Medium
+                    ),
+                    color = Color(0xFFFFFBF5), // 暖白色
+                    letterSpacing = 0.5.sp
+                )
+            }
+        }
+        
+        // 1秒后开始淡出
+        LaunchedEffect(msg) {
+            kotlinx.coroutines.delay(700)
+            visible = false
+            kotlinx.coroutines.delay(300)
+            toastMessage = null
         }
     }
 }
