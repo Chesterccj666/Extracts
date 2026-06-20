@@ -14,7 +14,8 @@ import kotlinx.serialization.json.Json
 @Serializable
 data class WidgetState(
     val noteContent: String = "暂无摘记",
-    val noteSource: String = ""
+    val noteSource: String = "",
+    val opacity: Int = 100 // 透明度百分比 0-100
 )
 
 object WidgetStateSerializer : Serializer<WidgetState> {

@@ -26,11 +26,18 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = viewModel()
 ) {
     val refreshHour by viewModel.widgetRefreshHour.collectAsState()
+    val widgetOpacity by viewModel.widgetOpacity.collectAsState()
     val message by viewModel.message.collectAsState()
 
     var showHourPicker by remember { mutableStateOf(false) }
     var showImportConfirm by remember { mutableStateOf(false) }
     var pendingImportUri by remember { mutableStateOf<Uri?>(null) }
+    var localOpacity by remember { mutableIntStateOf(widgetOpacity) }
+
+    // 同步本地透明度值
+    LaunchedEffect(widgetOpacity) {
+        localOpacity = widgetOpacity
+    }
 
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
@@ -117,6 +124,62 @@ fun SettingsScreen(
                     }
                     TextButton(onClick = { showHourPicker = true }) {
                         Text("修改", color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+            }
+
+            // Widget opacity setting
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth()
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.FormatColorFill,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            "小组件背景透明度",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "当前透明度: $localOpacity%",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Slider(
+                        value = localOpacity.toFloat(),
+                        onValueChange = { localOpacity = it.toInt() },
+                        valueRange = 0f..100f,
+                        steps = 19,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(onClick = {
+                            viewModel.setWidgetOpacity(localOpacity)
+                        }) {
+                            Text("应用", color = MaterialTheme.colorScheme.primary)
+                        }
                     }
                 }
             }

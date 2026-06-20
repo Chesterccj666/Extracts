@@ -23,12 +23,21 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     val widgetRefreshHour: StateFlow<Int> = settingsManager.widgetRefreshHour
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 8)
 
+    val widgetOpacity: StateFlow<Int> = settingsManager.widgetOpacity
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 100)
+
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message.asStateFlow()
 
     fun setWidgetRefreshHour(hour: Int) {
         viewModelScope.launch {
             settingsManager.setWidgetRefreshHour(hour)
+        }
+    }
+
+    fun setWidgetOpacity(opacity: Int) {
+        viewModelScope.launch {
+            settingsManager.setWidgetOpacity(opacity)
         }
     }
 

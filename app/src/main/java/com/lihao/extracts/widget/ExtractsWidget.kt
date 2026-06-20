@@ -40,7 +40,7 @@ class ExtractsWidget : GlanceAppWidget() {
     }
 
     companion object {
-        suspend fun refreshWidget(context: Context, id: GlanceId) {
+        suspend fun refreshWidget(context: Context, id: GlanceId, opacity: Int = 100) {
             val db = AppDatabase.getInstance(context)
             val randomNote = db.noteDao().getRandomNote()
             
@@ -51,7 +51,8 @@ class ExtractsWidget : GlanceAppWidget() {
             ) {
                 WidgetState(
                     noteContent = randomNote?.content ?: "暂无摘记",
-                    noteSource = randomNote?.source ?: ""
+                    noteSource = randomNote?.source ?: "",
+                    opacity = opacity
                 )
             }
             
@@ -65,11 +66,21 @@ class ExtractsWidget : GlanceAppWidget() {
 private fun WidgetContent() {
     val state = currentState<WidgetState>()
     
+    // 计算带透明度的背景色
+    val alpha = (state.opacity / 100f).coerceIn(0f, 1f)
+    val baseColor = Color(0xFFF8F4EE)
+    val transparentColor = Color(
+        red = baseColor.red,
+        green = baseColor.green,
+        blue = baseColor.blue,
+        alpha = alpha
+    )
+    
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
             .padding(16.dp)
-            .background(ColorProvider(Color(0xFFF8F4EE)))
+            .background(ColorProvider(transparentColor))
             .clickable(actionStartActivity<MainActivity>()),
         verticalAlignment = Alignment.CenterVertically,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -94,7 +105,7 @@ private fun WidgetContent() {
                 text = "- ${state.noteSource} -",
                 style = TextStyle(
                     color = ColorProvider(Color(0xFF6B6560)),
-                    fontFamily = FontFamily.Serif,
+                    fontFamily = FontFamily.Serif
                 )
             )
         }

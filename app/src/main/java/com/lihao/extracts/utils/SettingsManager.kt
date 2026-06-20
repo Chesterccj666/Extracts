@@ -13,6 +13,7 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "se
 
 object SettingsKeys {
     val WIDGET_REFRESH_HOUR = intPreferencesKey("widget_refresh_hour")
+    val WIDGET_OPACITY = intPreferencesKey("widget_opacity")
 }
 
 class SettingsManager(private val context: Context) {
@@ -21,9 +22,19 @@ class SettingsManager(private val context: Context) {
         preferences[SettingsKeys.WIDGET_REFRESH_HOUR] ?: 8
     }
 
+    val widgetOpacity: Flow<Int> = context.dataStore.data.map { preferences ->
+        preferences[SettingsKeys.WIDGET_OPACITY] ?: 100
+    }
+
     suspend fun setWidgetRefreshHour(hour: Int) {
         context.dataStore.edit { preferences ->
             preferences[SettingsKeys.WIDGET_REFRESH_HOUR] = hour
+        }
+    }
+
+    suspend fun setWidgetOpacity(opacity: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[SettingsKeys.WIDGET_OPACITY] = opacity
         }
     }
 }
