@@ -12,10 +12,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lihao.extracts.data.entity.Category
 import com.lihao.extracts.data.entity.Note
@@ -38,6 +42,15 @@ fun HomeScreen(
     val selectedCategory by viewModel.selectedCategory.collectAsState()
 
     var showDeleteDialog by remember { mutableStateOf<Note?>(null) }
+    var toastMessage by remember { mutableStateOf<String?>(null) }
+
+    // Toast 自动消失
+    LaunchedEffect(toastMessage) {
+        if (toastMessage != null) {
+            kotlinx.coroutines.delay(700)
+            toastMessage = null
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -49,7 +62,10 @@ fun HomeScreen(
                     )
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.refreshWidget() }) {
+                    IconButton(onClick = {
+                        viewModel.refreshWidget()
+                        toastMessage = "刷新成功！"
+                    }) {
                         Icon(Icons.Default.Refresh, contentDescription = "刷新桌面组件")
                     }
                     IconButton(onClick = onCategoryClick) {
@@ -174,6 +190,49 @@ fun HomeScreen(
                 }
             }
         )
+    }
+
+    // Toast 提示（屏幕底部居中，带淡入淡出动画）
+    toastMessage?.let { msg ->
+        var visible by remember { mutableStateOf(false) }
+
+        LaunchedEffect(msg) {
+            visible = true
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 80.dp),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Surface(
+                modifier = Modifier
+                    .padding(horizontal = 32.dp)
+                    .alpha(if (visible) 1f else 0f),
+                shape = RoundedCornerShape(20.dp),
+                color = Color(0xE68B5A3E), // 半透明暖棕色
+                shadowElevation = 12.dp
+            ) {
+                Text(
+                    text = msg,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 14.dp),
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Medium
+                    ),
+                    color = Color(0xFFFFFBF5), // 暖白色
+                    letterSpacing = 0.5.sp
+                )
+            }
+        }
+
+        // 淡出动画
+        LaunchedEffect(msg) {
+            kotlinx.coroutines.delay(700)
+            visible = false
+            kotlinx.coroutines.delay(300)
+            toastMessage = null
+        }
     }
 }
 
